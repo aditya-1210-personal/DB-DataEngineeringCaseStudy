@@ -1,0 +1,15 @@
+name: mortgage_pipeline
+version: '1.0.0'
+config-version: 2
+profile: mortgage_pipeline
+model-paths: ["models"]
+test-paths: ["tests"]
+clean-targets: ["target", "dbt_packages"]
+models:
+  mortgage_pipeline:
+    staging:
+      +schema: stage
+    silver:
+      +schema: stage
+    gold:
+      +schema: curated

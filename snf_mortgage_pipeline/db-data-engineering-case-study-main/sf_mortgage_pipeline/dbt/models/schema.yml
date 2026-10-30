@@ -1,0 +1,39 @@
+version: 2
+models:
+  - name: stg_mortgage_applications
+    columns:
+      - name: application_id
+        tests: [not_null, unique]
+      - name: applicant_id
+        tests: [not_null]
+  - name: stg_credit_bureau
+    columns:
+      - name: applicant_id
+        tests: [not_null, unique]
+  - name: clean_applications
+    columns:
+      - name: application_id
+        tests: [not_null, unique]
+      - name: property_value
+        tests: [not_null]
+      - name: fico_score
+        tests: [not_null]
+  - name: technical_rejections
+    columns:
+      - name: application_id
+        tests: [not_null]
+      - name: rejection_reason
+        tests: [not_null]
+  - name: underwriting_decisions
+    columns:
+      - name: application_id
+        tests: [not_null, unique]
+      - name: decision_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['APPROVED', 'DECLINED', 'REQUIRES_COSIGNER']
+      - name: ltv_pct
+        tests: [not_null]
+      - name: dti_pct
+        tests: [not_null]
