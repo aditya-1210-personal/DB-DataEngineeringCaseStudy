@@ -4,7 +4,7 @@ Production-oriented demonstration of a synthetic mortgage pipeline using **Pytho
 
 ## Architecture
 
-See [architecture and Mermaid diagram](docs/architecture.md).
+See [architecture and Mermaid diagram](snf_mortgage_pipeline/db-data-engineering-case-study-main/sf_mortgage_pipeline/docs/architecture.md).
 
 ```mermaid
 flowchart LR
