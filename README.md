@@ -28,7 +28,7 @@ pip install -r requirements.txt
 pytest -q
 ```
 
-For operational and security considerations see [security](docs/security.md) and [testing](docs/testing.md).
+For operational and security considerations see [security](snf_mortgage_pipeline/db-data-engineering-case-study-main/sf_mortgage_pipeline/docs/security.md) and [testing](snf_mortgage_pipeline/db-data-engineering-case-study-main/sf_mortgage_pipeline/docs/testing.md).
 
 ## Data behavior
 
