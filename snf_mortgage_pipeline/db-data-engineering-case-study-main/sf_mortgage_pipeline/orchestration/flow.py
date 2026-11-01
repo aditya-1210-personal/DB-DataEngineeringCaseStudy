@@ -7,14 +7,14 @@ from prefect.logging import get_run_logger
 @task(retries=2, retry_delay_seconds=30)
 def generate_data():
     subprocess.run(
-        [sys.executable, "scripts/generate_data.py"],
+        [sys.executable, "ingestion/generate_data.py"],
         check=True
     )
 
 @task(retries=2, retry_delay_seconds=30)
 def load_sources():
     subprocess.run(
-        [sys.executable, "scripts/load_raw.py"],
+        [sys.executable, "ingestion/load_raw.py"],
         cwd="scripts",
         check=True
     )
