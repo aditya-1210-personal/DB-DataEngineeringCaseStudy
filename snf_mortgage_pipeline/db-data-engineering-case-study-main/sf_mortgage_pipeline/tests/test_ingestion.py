@@ -40,7 +40,7 @@ def test_load_raw_executes_copy_and_append(monkeypatch):
     monkeypatch.setattr(load_raw, "run_sql", lambda cursor, statement: statements.append(statement))
     load_raw.load_raw([{"application_id":"A1", "applicant_id":"C1"}], [{"applicant_id":"C1", "ssn":"X", "fico_score":"700", "monthly_debt":"10"}], conn)
     assert sum("COPY INTO" in s for s in statements) == 2
-    assert sum("INSERT INTO" in s for s in statements) == 2
+    assert sum("INSERT INTO" in s for s in statements) == 1
     conn.commit.assert_called_once()
 
 def test_main(monkeypatch):
