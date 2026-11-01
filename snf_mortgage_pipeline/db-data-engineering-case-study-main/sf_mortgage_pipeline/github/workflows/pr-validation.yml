@@ -1,0 +1,69 @@
+name: PR - Provision, Test, dbt
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mortgage-pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: mortgage-ci
+    env:
+      VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+      VAULT_KV_MOUNT: ${{ vars.VAULT_KV_MOUNT || 'secret' }}
+      VAULT_SECRET_PATH: ${{ vars.VAULT_SECRET_PATH || 'mortgage/snowflake-ci' }}
+      SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE || 'MORTGAGE_PIPELINE_ROLE' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - uses: hashicorp/setup-terraform@v3
+      - name: Fetch Snowflake key from Vault for CLI tools
+        shell: bash
+        run: |
+          # No shell export script or passphrase is written to disk.
+          # The only secret file is a restricted, temporary decrypted PEM for dbt.
+          python -m config.export_credentials "$RUNNER_TEMP/snowflake_key.pem" "$GITHUB_ENV"
+      - name: Terraform fmt and validate
+        run: |
+          terraform -chdir=terraform fmt
+          terraform -chdir=terraform init -input=false
+          terraform -chdir=terraform validate
+      - name: Terraform plan
+        run: terraform -chdir=terraform plan -input=false -out=tfplan
+      # Apply is intentionally gated until a remote backend, isolated CI account,
+      # appropriate Snowflake provider auth, and lifecycle cleanup are configured.
+      - name: Terraform apply (isolated CI only)
+        if: vars.ENABLE_CI_TERRAFORM_APPLY == 'true'
+        run: terraform -chdir=terraform apply -input=false -auto-approve tfplan
+      - name: Create RAW tables (isolated CI only)
+        if: vars.ENABLE_CI_TERRAFORM_APPLY == 'true' && vars.ENABLE_CI_SQL_DEPLOY == 'true'
+        run: python -m scripts.execute_sql raw_tables.sql
+      - name: Pytest
+        run: pytest -q
+      - name: dbt test (requires seeded CI models)
+        if: vars.ENABLE_CI_DBT_TEST == 'true'
+        run: |
+          cp dbt/profiles.yml.example dbt/profiles.yml
+          dbt deps --project-dir dbt --profiles-dir dbt
+          dbt build --project-dir dbt --profiles-dir dbt
+          dbt test --project-dir dbt --profiles-dir dbt
+      - name: Apply masking policy after dbt (isolated CI only)
+        if: vars.ENABLE_CI_TERRAFORM_APPLY == 'true' && vars.ENABLE_CI_DBT_TEST == 'true' && vars.ENABLE_CI_SQL_DEPLOY == 'true'
+        run: python -m scripts.execute_sql security_post_deploy.sql
+      - name: Create secure auditor share (explicit approval only)
+        if: github.event_name == 'workflow_dispatch' && vars.ENABLE_CI_TERRAFORM_APPLY == 'true' && vars.ENABLE_CI_DBT_TEST == 'true' && vars.ENABLE_CI_SQL_DEPLOY == 'true' && vars.ENABLE_AUDITOR_SHARE == 'true'
+        run: python -m scripts.execute_sql secure_data_share.sql
+      - name: Remove temporary private key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/snowflake_key.pem"
