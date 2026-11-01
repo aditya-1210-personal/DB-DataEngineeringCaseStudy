@@ -1,21 +1,50 @@
+
 {{ config(
-    materialized='incremental',
-    unique_key='application_id',
-    incremental_strategy='merge'
+    materialized='table',
+    schema='curated'
 ) }}
 
-select 
- application_id, 
- applicant_id, 
- decision_at::date as action_date, 
- loan_amount,
- property_value, 
- ltv_pct, 
- dti_pct, 
- fico_score, 
- decision_status, 
- decision_reason_code
-from {{ ref('underwriting_decisions') }}
-{% if is_incremental() %}
-where decision_at >= dateadd(day, -{{ var('incremental_lookback_days', 7) }}, current_timestamp())
-{% endif %}
+WITH decisions AS (
+    SELECT
+        DATE_TRUNC('MONTH', decision_at)::DATE
+            AS reporting_month,
+        decision_status,
+        decision_reason_code,
+        loan_amount,
+        fico_score
+    FROM {{ ref('underwriting_decisions') }}
+)
+
+SELECT
+    reporting_month,
+    decision_status,
+    decision_reason_code,
+
+    COUNT(*) AS total_applications,
+
+    SUM(loan_amount) AS total_loan_amount,
+
+    ROUND(AVG(loan_amount), 2)
+        AS avg_loan_amount,
+
+    COUNT_IF(decision_status = 'APPROVED')
+        AS approved_count,
+
+    COUNT_IF(decision_status = 'DECLINED')
+        AS declined_count,
+
+    ROUND(
+        AVG(
+            CASE
+                WHEN decision_status = 'APPROVED'
+                THEN fico_score
+            END
+        ),
+        2
+    ) AS avg_approved_fico
+
+FROM decisions
+GROUP BY
+    reporting_month,
+    decision_status,
+    decision_reason_code
