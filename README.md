@@ -40,4 +40,4 @@ PR pipeline installs dependencies, validates and plans Terraform, executes pytes
 
 ## SQL deployment
 
-See [SQL deployment guide](docs/sql_deployment.md). Approved provider-side SQL runs via `python -m scripts.execute_sql raw_tables.sql`, `security_post_deploy.sql`, or `secure_data_share.sql`, with separate gated CI stages. Auditor consumer SQL is not run in provider CI.
+See [SQL deployment guide](snf_mortgage_pipeline/db-data-engineering-case-study-main/sf_mortgage_pipeline/docs/sql_deployment.md). Approved provider-side SQL runs via `python -m scripts.execute_sql raw_tables.sql`, `security_post_deploy.sql` with separate gated CI stages. Auditor consumer SQL is not run in provider CI.
