@@ -40,8 +40,8 @@ def load_raw(applications, credits, connection):
         write_credit_csv(credits, credit_file)
         cursor = connection.cursor()
         try:
-            run_sql(cursor, "CREATE TEMPORARY STAGE MORTGAGE_APP_STAGE")
-            run_sql(cursor, "CREATE TEMPORARY STAGE MORTGAGE_CREDIT_STAGE")
+            run_sql(cursor, "CREATE STAGE IF NOT EXISTS MORTGAGE_APP_STAGE")
+            run_sql(cursor, "CREATE STAGE IF NOT EXISTS MORTGAGE_CREDIT_STAGE")
             run_sql(cursor, "CREATE TEMPORARY TABLE TMP_APPLICATIONS (PAYLOAD VARIANT)")
             run_sql(cursor, "CREATE TEMPORARY TABLE TMP_CREDITS (APPLICANT_ID STRING, SSN STRING, FICO_SCORE NUMBER(3,0), MONTHLY_DEBT NUMBER(14,2))")
             run_sql(cursor, f"PUT 'file://{app_file.as_posix()}' @MORTGAGE_APP_STAGE AUTO_COMPRESS=TRUE")
