@@ -11,3 +11,6 @@ select
  try_to_decimal(payload:monthly_gross_income::string,14,2) as monthly_gross_income,
  ingested_at as application_ingested_at
 from {{ source('raw','mortgage_applications_raw') }}
+qualify row_number() over (
+ partition by applicant_id,applicant_id order by ingested_at desc
+ )=1
