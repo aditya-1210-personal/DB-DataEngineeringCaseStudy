@@ -1,6 +1,6 @@
 version: 2
 sources:
-  - name: bronze
+  - name: RAW
     database: MORTGAGE_DB
     schema: RAW
     tables:
