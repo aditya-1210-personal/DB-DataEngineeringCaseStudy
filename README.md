@@ -21,14 +21,14 @@ See [architecture and Mermaid diagram](snf_mortgage_pipeline/db-data-engineering
 
 ## Getting started
 
-Read [deployment guide](docs/deployment.md) before executing any infrastructure changes. Configure a dedicated Snowflake service user, public key, Vault KV v2 secret, and least-privilege roles.
+First configure a dedicated Snowflake service user, public key, Vault KV v2 secret, and least-privilege roles.
 
 ```bash
 pip install -r requirements.txt
 pytest -q
 ```
 
-For real Snowflake deployment follow [deployment guide](docs/deployment.md). For operational and security considerations see [security](docs/security.md) and [testing](docs/testing.md).
+For operational and security considerations see [security](docs/security.md) and [testing](docs/testing.md).
 
 ## Data behavior
 
