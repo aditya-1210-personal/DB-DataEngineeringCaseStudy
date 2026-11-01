@@ -1,14 +1,20 @@
+
 mortgage_pipeline:
   target: dev
   outputs:
     dev:
       type: snowflake
+
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
       user: "{{ env_var('SNOWFLAKE_USER') }}"
-      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+
+      authenticator: snowflake
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+
       role: "{{ env_var('SNOWFLAKE_ROLE', 'MORTGAGE_PIPELINE_ROLE') }}"
       database: "{{ env_var('SNOWFLAKE_DATABASE', 'MORTGAGE_DB') }}"
       warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'MORTGAGE_WH') }}"
-      schema: SILVER
+
+      schema: DBT
       threads: 4
       client_session_keep_alive: false
