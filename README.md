@@ -6,18 +6,6 @@ Production-oriented demonstration of a synthetic mortgage pipeline using **Pytho
 
 See [architecture and Mermaid diagram](snf_mortgage_pipeline/db-data-engineering-case-study-main/sf_mortgage_pipeline/docs/architecture.md).
 
-```mermaid
-flowchart LR
-  A[JSON / CSV] --> B[Python COPY INTO]
-  B --> C[(Snowflake RAW)]
-  C --> D[dbt STAGING]
-  D --> E[dbt SILVER]
-  E --> F[(CURATED / GOLD)]
-  G[Prefect] -.-> B
-  G -.-> D
-  H[Vault / key pair] -.-> B
-  I[Terraform] --> C
-```
 
 ## Repository layout
 
