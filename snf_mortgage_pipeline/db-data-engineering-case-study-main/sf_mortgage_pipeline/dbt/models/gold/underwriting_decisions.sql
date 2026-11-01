@@ -17,8 +17,8 @@ with m as (
        fico_score,
        application_ingested_at, 
        credit_ingested_at,
-       loan_amount / nullif(property_value, 0) * 100, 2 as ltv_pct,
-       monthly_debt / nullif(monthly_gross_income, 0) * 100, 2 as dti_pct
+       loan_amount / nullif(property_value, 0) * 100 as ltv_pct,
+       monthly_debt / nullif(monthly_gross_income, 0) * 100 as dti_pct
     from {{ ref('clean_applications') }}
 ), r as (
     select *,
