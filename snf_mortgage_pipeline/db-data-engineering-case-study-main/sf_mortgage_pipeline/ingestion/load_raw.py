@@ -40,15 +40,16 @@ def load_raw(applications, credits, connection):
         write_credit_csv(credits, credit_file)
         cursor = connection.cursor()
         try:
-            run_sql(cursor, "CREATE STAGE IF NOT EXISTS MORTGAGE_APP_STAGE")
-            run_sql(cursor, "CREATE STAGE IF NOT EXISTS MORTGAGE_CREDIT_STAGE")
+            run_sql(cursor, "CREATE TEMPORARY STAGE MORTGAGE_APP_STAGE")
+            run_sql(cursor, "CREATE TEMPORARY STAGE MORTGAGE_CREDIT_STAGE")
             run_sql(cursor, "CREATE TEMPORARY TABLE TMP_APPLICATIONS (PAYLOAD VARIANT)")
+            run_sql(cursor, "CREATE TEMPORARY TABLE TMP_CREDITS (APPLICANT_ID STRING, SSN STRING, FICO_SCORE NUMBER(3,0), MONTHLY_DEBT NUMBER(14,2))")
             run_sql(cursor, f"PUT 'file://{app_file.as_posix()}' @MORTGAGE_APP_STAGE AUTO_COMPRESS=TRUE")
             run_sql(cursor, f"PUT 'file://{credit_file.as_posix()}' @MORTGAGE_CREDIT_STAGE AUTO_COMPRESS=TRUE")
             run_sql(cursor, "COPY INTO TMP_APPLICATIONS FROM @MORTGAGE_APP_STAGE FILE_FORMAT=(TYPE=JSON) ON_ERROR=ABORT_STATEMENT")
-            run_sql(cursor, "COPY INTO MORTGAGE_DB.RAW.CREDIT_BUREAU_RAW FROM @MORTGAGE_CREDIT_STAGE FILE_FORMAT=(TYPE=CSV SKIP_HEADER=1 FIELD_OPTIONALLY_ENCLOSED_BY='\"' EMPTY_FIELD_AS_NULL=TRUE) ON_ERROR=ABORT_STATEMENT")
+            run_sql(cursor, "COPY INTO TMP_CREDITS FROM @MORTGAGE_CREDIT_STAGE FILE_FORMAT=(TYPE=CSV SKIP_HEADER=1 FIELD_OPTIONALLY_ENCLOSED_BY='\"' EMPTY_FIELD_AS_NULL=TRUE) ON_ERROR=ABORT_STATEMENT")
             run_sql(cursor, "INSERT INTO MORTGAGE_DB.RAW.MORTGAGE_APPLICATIONS_RAW (APPLICATION_ID, APPLICANT_ID, PAYLOAD, SOURCE_FILE) SELECT PAYLOAD:application_id::STRING, PAYLOAD:applicant_id::STRING, PAYLOAD, 'mortgage_applications.json' FROM TMP_APPLICATIONS")
-            connection.commit()
+            run_sql(cursor, "INSERT INTO MORTGAGE_DB.RAW.CREDIT_BUREAU_RAW (APPLICANT_ID, SSN, FICO_SCORE, MONTHLY_DEBT, SOURCE_FILE) SELECT APPLICANT_ID, SSN, FICO_SCORE, MONTHLY_DEBT, 'credit_bureau.csv' FROM TMP_CREDITS")connection.commit()
         finally:
             cursor.close()
 
