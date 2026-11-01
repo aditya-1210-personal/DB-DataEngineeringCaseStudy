@@ -17,4 +17,11 @@ Reference implementation of the three-layer mortgage case study. Synthetic data 
 ## Security and regulatory scope
 Raw tables contain sensitive source data and should be restricted to the ingestion/service roles. Stage masks SSN before it reaches the master application model. Analysts should receive access to Gold only. The HMDA model is a reporting-oriented projection, not a complete regulatory filing: the supplied data lacks required HMDA attributes. Review grants, retention, data lineage, model tests, and regulatory requirements before production use.
 
+# Documentation index
+
+- [Architecture](architecture.md)
+- [Deployment and CI](deployment.md)
+- [Testing](testing.md)
+- [Security](security.md)
+- [Original design answers](design_answers.md)
 
